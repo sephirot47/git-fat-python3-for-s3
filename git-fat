@@ -46,15 +46,17 @@ try:
     from boto.s3.key import Key
     class S3Backend(object):
 
-        def __init__(self,bucket,key,secret,objdir):
+        def __init__(self,bucket,key,secret,objdir,path,host):
             self.verbose = verbose_stderr if os.environ.get('GIT_FAT_VERBOSE') else verbose_ignore
             self.bucket = bucket
             self.key = key
             self.secret = secret
             self.objdir = objdir
+            self.path = path
+            self.host = host
 
         def get_bucket(self):
-            conn = S3Connection(self.key, self.secret)
+            conn = S3Connection(self.key, self.secret,host=self.host)
             bkt = conn.get_bucket(self.bucket)
             bkt_location = bkt.get_location()
             if bkt_location:
@@ -72,7 +74,7 @@ try:
                 else:
                     self.verbose('Getting object %s from s3 bucket %s' % (file,self.bucket))
                     k = Key(bkt)
-                    k.key = file
+                    k.key = self.path + '/' + file
                     localfile = os.path.abspath(os.path.join(self.objdir,file))
                     try:
                         k.get_contents_to_filename(localfile,
@@ -92,7 +94,7 @@ try:
                     self.verbose('Object %s already exists in bucket %s, skipping.' % (file,self.bucket))
                 else:
                     k = Key(bkt)
-                    k.key = file
+                    k.key = self.path + '/' + file
                     localfile = os.path.abspath(os.path.join(self.objdir,file))
                     self.verbose('Uploading object %s to s3 bucket %s' % (file,self.bucket))
                     try:
@@ -107,7 +109,7 @@ try:
 except ImportError:
     class S3Backend(object):
 
-        def __init__(self,bucket,key,secret,objdir):
+        def __init__(self,bucket,key,secret,objdir,path):
             raise RuntimeError("S3Backend requires boto.")
 
 BLOCK_SIZE = 4096
@@ -293,6 +295,10 @@ class GitFat(object):
         elif gitconfig_get('s3.bucket', file=cfgpath):
             bucket    = gitconfig_get('s3.bucket', file=cfgpath)
             key       = gitconfig_get('s3.key', file=cfgpath)
+            path      = gitconfig_get('s3.path', file=cfgpath)
+            host      = gitconfig_get('s3.host', file=cfgpath)
+            if host is None:
+                host = 's3.amazonaws.com'
             if key is None:
                 try:
                     key = os.environ['AWS_ACCESS_KEY_ID']
@@ -304,7 +310,7 @@ class GitFat(object):
                     secret = os.environ['AWS_SECRET_ACCESS_KEY']
                 except KeyError:
                     raise RuntimeError('No s3.secret in %s' % cfgpath)
-            return S3Backend(bucket,key,secret,objdir)
+            return S3Backend(bucket,key,secret,objdir,path,host)
         else:
             raise RuntimeError('No supported backends specified in %s' % cfgpath)
 
