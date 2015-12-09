@@ -109,7 +109,7 @@ try:
 except ImportError:
     class S3Backend(object):
 
-        def __init__(self,bucket,key,secret,objdir,path):
+        def __init__(self,bucket,key,secret,objdir,path,host):
             raise RuntimeError("S3Backend requires boto.")
 
 BLOCK_SIZE = 4096
@@ -298,7 +298,9 @@ class GitFat(object):
             path      = gitconfig_get('s3.path', file=cfgpath)
             host      = gitconfig_get('s3.host', file=cfgpath)
             if host is None:
-                host = 's3.amazonaws.com'
+                host = os.environ['AWS_HOST']
+            if bucket is None:
+                bucket = os.environ['AWS_BUCKET']
             if key is None:
                 try:
                     key = os.environ['AWS_ACCESS_KEY_ID']
@@ -693,3 +695,4 @@ if __name__ == '__main__':
         fat.cmd_index_filter(sys.argv[2:])
     else:
         print('Usage: git fat [init|status|push|pull|gc|checkout|find|index-filter]', file=sys.stderr)
+
