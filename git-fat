@@ -56,12 +56,12 @@ try:
             self.host = host
 
         def get_bucket(self):
-            conn = S3Connection(self.key, self.secret,host=self.host)
+            conn = S3Connection(self.key, self.secret,host=self.host, calling_format= 'boto.s3.connection.OrdinaryCallingFormat')
             bkt = conn.get_bucket(self.bucket)
             bkt_location = bkt.get_location()
             if bkt_location:
                 self.verbose("Setting connection to region %s" % bkt_location)
-                conn = boto.s3.connect_to_region(bkt_location, aws_access_key_id=self.key, aws_secret_access_key=self.secret)
+                conn = boto.s3.connect_to_region(bkt_location, aws_access_key_id=self.key, aws_secret_access_key=self.secret, calling_format= 'boto.s3.connection.OrdinaryCallingFormat')
                 bkt = conn.get_bucket(self.bucket)
             return bkt
 
