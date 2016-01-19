@@ -89,8 +89,8 @@ try:
         def push(self,files):
             bkt = self.get_bucket()
             for file in files:
-                k = bkt.get_key(file)
-                if bkt.get_key(file):
+                k = bkt.get_key(self.path + '/' + file)
+                if bkt.get_key(self.path + '/' + file):
                     self.verbose('Object %s already exists in bucket %s, skipping.' % (file,self.bucket))
                 else:
                     k = Key(bkt)
