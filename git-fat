@@ -670,6 +670,9 @@ class GitFat(object):
 
 
 if __name__ == '__main__':
+    if sys.version_info[0] < 3:
+        raise Exception("This git-fat version must use Python 3")
+
     fat = GitFat()
     cmd = sys.argv[1] if len(sys.argv) > 1 else ''
     if cmd == 'filter-clean':
