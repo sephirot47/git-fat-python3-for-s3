@@ -368,7 +368,7 @@ class GitFat(object):
         h = hashlib.new('sha1')
         bytecount = 0
         # mkstemp requires 'str' rather than native filesystem bytes
-        fd, tmpname = tempfile.mkstemp(dir=self.objdir.decode(sys.getfilesystemencoding()))
+        fd, tmpname = tempfile.mkstemp(dir=self.objdir)
         try:
             ishanging = False
             cached = False                # changes to True when file is cached
@@ -387,7 +387,7 @@ class GitFat(object):
                     outstream.write(block)
                 outstream.flush()
             digest = h.hexdigest().encode('ASCII')
-            objfile = os.path.join(self.objdir, digest)
+            objfile = os.path.join(self.objdir, digest.decode())
             if not ishanging:
                 if os.path.exists(objfile):
                     self.verbose('git-fat filter-clean: cache already exists %s' % objfile)
@@ -421,7 +421,7 @@ class GitFat(object):
         sys.stdout = ensure_binary_mode(sys.stdout)
         result, bytecount = self.decode_stream(sys.stdin)
         if isinstance(result, bytes): # We got a digest
-            objfile = os.path.join(self.objdir, result)
+            objfile = os.path.join(self.objdir, result.decode())
             try:
                 self.verbose('git-fat filter-smudge: restoring from %s' % objfile)
                 cat(open(objfile, 'rb'), sys.stdout)
